@@ -40,7 +40,7 @@ While LC-tank VCOs offer superior phase noise, they require on-chip inductors th
 
 The RO-PLL is a classical integer-N charge-pump PLL with the following hierarchy:
 
-![Proposed RO-PLL Architecture](https://raw.githubusercontent.com/OlonadeKelvin/ro-pll-gf180/main/Images/RO-PLL.drawio.webp)
+![Proposed RO-PLL Architecture](https://github.com/OlonadeKelvin/-ro-pll-gf180/blob/main/docs/images/RO-PLL.drawio.webp)
 ### 4.1 Current-Starved Ring VCO (CS-RVCO)
 
 The heart of the system is a **current-starved differential/inverter-based ring oscillator** with selectable 5-stage or 7-stage configurations (controlled by a digital pin). Each stage is a pseudo-differential current-starved inverter: PMOS pull-up and NMOS pull-down transistors are loaded by cascode current sources, whose gate voltages are driven by the VCO control voltage (V\_ctrl) through a voltage-to-current converter. This architecture provides:
@@ -249,5 +249,5 @@ Every simulation, schematic, layout file, and result will be version-controlled 
 | Kelvin| Charge pump design, dead zone characterization, and loop filter design. |
 
 Links
-[Github repo(s)](https://github.com/OlonadeKelvin/ro-pll-gf180)
+[Github repo(s)](https://github.com/OlonadeKelvin/-ro-pll-gf180)
 [Proposal Slide Link]()
