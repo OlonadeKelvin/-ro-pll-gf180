@@ -1,153 +1,253 @@
-# chipathon-2026-gf180mcu-padring
+# Ring Oscillator-Based Phase-Locked Loop (RO-PLL)
 
-Chipathon 2026 workshop fork of the wafer-space `gf180mcu-project-template`.
-Adds a new LibreLane slot, `workshop`, that mirrors Juan Moya's
-standalone workshop padring as a native LibreLane slot definition so
-participants can take the flow all the way to GDS with the stock
-template Makefile.
+### Chipathon 2026 Project Proposal | GF180MCU (GlobalFoundries 180nm)
 
-No PRs are planned against upstream; all chipathon-specific material
-stays in this fork.
+## 1. Project Title
 
-## Credits
+**RO-PLL-GF180: A Fully Verified, Open-Source Ring Oscillator-Based Phase-Locked Loop in GlobalFoundries 180nm CMOS**
 
-This repository is a **derivation**. The template, Nix flake, and
-LibreLane flow are the work of Leo Moser and the wafer-space
-contributors; the workshop pad layout is a port of Juan Moya's
-`padring_gf180`. Both are Apache-2.0.
+> *Empowering the next generation of analog/mixed-signal IC designers through open, transparent, and rigorously verified PLL design.*
 
-- Upstream template — https://github.com/wafer-space/gf180mcu-project-template
-  pinned at commit `8bd0f6ff28947bf222c5288343f8f3ee1fc04632`
-  (`chore: update flake to librelane 3.0`, 2026-03-26).
-- Workshop pad layout — https://github.com/JuanMoya/padring_gf180
-  (`Workshop_CASS/padring/workshop_padring.cfg`).
+## 2. Executive Summary
 
-See `CREDITS.md` for the per-artifact attribution and `NOTICE` for
-the formal Apache-2.0 notice.
+This proposal presents the design, simulation, verification, and tapeout of a fully integrated, open-source Ring Oscillator-Based Phase-Locked Loop (RO-PLL) implemented in GlobalFoundries' GF180MCU 180nm CMOS process. The system targets a wide frequency output range of **100 MHz to 1.2 GHz**, programmable division ratios from 1 to 32, and total power consumption below **8–10 mW**, specifications that make it immediately useful as clock generation IP for digital SoCs, microcontrollers, IoT endpoints, and educational mixed-signal platforms. The entire design flow, from schematic capture through post-layout simulation, will be conducted using freely available open-source EDA tools (Xschem, ngspice, Magic VLSI, KLayout, and OpenLane-compatible utilities), producing a reusable IP block and a comprehensive, well-documented design notebook accessible to anyone worldwide.
 
-## What this fork changes vs upstream
+Every design decision, from the topology choice of a current-starved ring oscillator to the sizing of the charge pump's current mirrors will be documented, justified, and linked to simulation evidence. The verification campaign spans thousands of Monte Carlo runs for mismatch and process variation, full PVT corner analysis (FF/TT/SS × ±10% supply × −40°C to 125°C), transient lock-time measurements, phase noise characterization, and post-layout parasitic extraction. By taping out under the Chipathon 2026 banner, we contribute a fully tested, silicon-proven PLL tile that subsequent teams can instantiate, modify, and build upon; advancing the open-source analog IC ecosystem in a meaningful and lasting way.
 
-Exactly 6 files (one commit on top of pinned upstream):
+## 3. Motivation and Target Applications
 
-| File | Change |
-|------|--------|
-| `src/slot_defines.svh` | add `SLOT_WORKSHOP` block (NUM_INPUT=1, BIDIR=20, ANALOG=60, 4/4 DVDD/DVSS) |
-| `src/chip_core.sv` | replace example counter with a 20-bit counter driving the 20 bidir pads; analog pads float through |
-| `librelane/slots/slot_workshop.yaml` | **new** slot (DIE 2935x2935 um, CORE 2051x2051 um, VERILOG_DEFINES=SLOT_WORKSHOP) |
-| `librelane/config.yaml` | drop SRAM `MACROS` entry and PDN macro connections - not used in this slot |
-| `librelane/pdn_cfg.tcl` | drop SRAM-specific `define_pdn_grid` blocks |
-| `Makefile` | `AVAILABLE_SLOTS += workshop` |
+### Why a PLL?
 
-`git log upstream/main..main` shows the single derivation commit;
-`git diff upstream/main..main` shows the delta.
+The Phase-Locked Loop is arguably the most ubiquitous mixed-signal building block in modern semiconductor design. It sits at the intersection of analog and digital domains, synthesizing precise clock frequencies from a stable reference, suppressing jitter, and enabling clock multiplication; functions required by virtually every digital system. Despite its ubiquity, high-quality, openly available, silicon-proven PLL IP in open-source PDKs remains extremely scarce. Most educational treatments stop at SPICE schematics; few teams complete the full journey through layout, extraction, and verified post-layout simulation.
 
-## Workshop slot - pad map at a glance
+### Why Ring Oscillator?
 
-- Die: **2935 x 2935 um** (same as Juan Moya's reference).
-- **60 x analog** (`gf180mcu_fd_io__asig_5p0`)
-- **20 x bidir** (`gf180mcu_fd_io__bi_24t`)
-- **4 x DVDD** + **4 x DVSS** (`gf180mcu_ws_io__dvdd` / `__dvss`)
-- **clk_pad** (`gf180mcu_fd_io__in_s`), **rst_n_pad** (`gf180mcu_fd_io__in_c`)
-- **1 x input_pad** - Yosys zero-width-vector workaround; chipathon
-  participants can ignore it (documented in `docs/workshop-slot-spec.md`).
-- **4 x corner** (`gf180mcu_fd_io__cor`, inserted by LibreLane).
+While LC-tank VCOs offer superior phase noise, they require on-chip inductors that are large, lossy, and process-sensitive at 180nm. A **current-starved ring oscillator VCO** trades some phase noise performance for compactness, wide tuning range, straightforward layout, and excellent portability across process nodes, all ideal qualities for an educational open-source IP project. The design lends itself naturally to analysis, and its performance is entirely predictable from first-principles MOSFET theory, making it a superb teaching vehicle.
 
-Pad ordering in `PAD_NORTH` and `PAD_WEST` is **reversed** relative to
-Juan Moya's standalone `workshop_padring.cfg` because LibreLane reads
-pad lists clockwise from the SW corner. Full pad-by-pad mapping in
-`docs/workshop-slot-spec.md`.
+### Target Applications
 
-## Quickstart
+| Application Domain | How the RO-PLL Helps |
+| - | - |
+| Digital SoC Clock Generation | Synthesizes on-chip clocks from a 10–50 MHz crystal reference |
+| Microcontroller Clock Multiplication | Provides high-speed core clocks from a low-frequency oscillator |
+| IoT & Edge Devices | Low-power PLL suits always-on clock domains |
+| ADC/DAC Clocking | Wide tuning range accommodates sampling rate flexibility |
+| Academic & Teaching Labs | Fully documented, reproducible design for coursework |
+| Open-Source SoC Ecosystems | Reusable tile for Caravel/OpenROAD-based SoC integration |
 
-### Build the workshop slot (native, nix-shell)
 
-```bash
-git clone <this-repo-url> chipathon-2026-gf180mcu-padring
-cd chipathon-2026-gf180mcu-padring
-nix-shell               # provides LibreLane 3.0.0
-make clone-pdk          # clones wafer-space/gf180mcu @ 1.8.0
-SLOT=workshop make librelane
+## 4. Proposed Architecture
+
+The RO-PLL is a classical integer-N charge-pump PLL with the following hierarchy:
+
+![Proposed RO-PLL Architecture](https://raw.githubusercontent.com/OlonadeKelvin/ro-pll-gf180/main/Images/RO-PLL.drawio.webp)
+### 4.1 Current-Starved Ring VCO (CS-RVCO)
+
+The heart of the system is a **current-starved differential/inverter-based ring oscillator** with selectable 5-stage or 7-stage configurations (controlled by a digital pin). Each stage is a pseudo-differential current-starved inverter: PMOS pull-up and NMOS pull-down transistors are loaded by cascode current sources, whose gate voltages are driven by the VCO control voltage (V\_ctrl) through a voltage-to-current converter. This architecture provides:
+
+- **Wide tuning range**: oscillation frequency is controlled by varying the bias current through each stage.
+
+- **5-stage mode**: optimized for the upper frequency band (~600 MHz – 1.2 GHz) with lower stage delay.
+
+- **7-stage mode**: optimized for the lower frequency band (~100 MHz – 600 MHz) with improved phase noise due to more averaging stages.
+
+- **Configurable gain (K\_VCO)**: achieved through a switched bank of tail current sources.
+
+### 4.2 Phase-Frequency Detector (PFD)
+
+A standard **dual-D-flip-flop with reset** topology is adopted, with special attention to dead-zone elimination. The key innovations are:
+
+- **Carefully sized reset path delay**: a tunable delay buffer in the reset path ensures both UP and DOWN pulses have a finite minimum width (~200–500 ps), preventing the charge pump from operating in its nonlinear dead zone.
+
+- **Matched layout**: the UP and DOWN signal paths are kept symmetric in layout to minimize static phase offset.
+
+- Implementation entirely in digital standard cells, enabling straightforward functional verification.
+
+### 4.3 Charge Pump (CP)
+
+The charge pump converts UP/DOWN pulses into a current that charges or discharges the loop filter. Key features:
+
+- **Current matching**: PMOS and NMOS current sources are sized and biased to achieve \< 2% static mismatch under typical conditions.
+
+- **Cascode current sources**: improve output impedance, reducing static phase offset due to current mismatch across the output voltage swing.
+
+- **Programmable current (I\_CP)**: 3-bit binary-weighted switch bank allows I\_CP to be set to 10, 20, 40, or 80 µA, enabling loop bandwidth tuning without hardware changes.
+
+- **Switch bootstrapping**: reduces charge injection and clock feedthrough from the switching transistors.
+
+### 4.4 Passive Loop Filter (PLF)
+
+A **third-order passive loop filter** (one zero, two poles) is used to attenuate reference spurs and shape the open-loop transfer function:
+
+- **Second-order core (R1, C1, C2)**: provides the stabilizing zero and dominant pole.
+
+- **Third-order extension (R2, C3)**: adds a second pole for additional reference spur suppression.
+
+- Component selection guidelines will be provided in the documentation, derived from the loop bandwidth and phase margin targets (φ\_m ≥ 55°).
+
+- All passive components are sized for on-chip integration in GF180MCU's MIM capacitor and poly resistor layers.
+
+### 4.5 Programmable Integer Frequency Divider
+
+A **synchronous divide-by-N counter** with N programmable from 1 to 32 (5-bit), implemented using D-flip-flops in the GF180MCU digital cells. Features:
+
+- Glitch-free output through registered decode logic.
+
+- Divide-by-2 prescaler at the VCO output to relax timing at the highest frequencies.
+
+- Full functional verification via digital simulation (ngspice/Icarus Verilog).
+
+### 4.6 Lock Detector
+
+A **digital windowed lock detector** monitors the phase error between REF and DIV signals. When the phase error remains below a programmable threshold for a configurable number of consecutive reference cycles, the LOCK output asserts high. This provides a clean, debounced lock indicator suitable for system integration.
+
+### 4.7 Power-Down Mode
+
+A global **PWR\_DN** pin places the entire PLL into a low-leakage state: the VCO bias current is cut, the charge pump is disabled, and the digital logic is clock-gated. Wake-up is achieved by deasserting PWR\_DN; the PLL re-acquires lock within the designed lock time.
+
+### 4.8 Output Buffer
+
+A **tapered inverter chain** with programmable drive strength buffers the VCO output to a 50-Ω-compatible swing for probing and system use. An optional differential CML output stage is included for lower jitter at high frequencies.
+
+## 5. Key Specifications
+
+| Parameter | Target | Notes |
+| - | - | - |
+| **Process** | GF180MCU 180nm CMOS | Open-source PDK, supported by ngspice, Magic, KLayout |
+| **Supply Voltage** | 1.8 V (core), 3.3 V (I/O) | GF180MCU standard |
+| **Reference Frequency** | 10 – 50 MHz | External crystal or TCXO |
+| **Output Frequency Range** | 100 MHz – 1.2 GHz | 5-stage and 7-stage modes combined |
+| **Division Ratio (N)** | 1 – 32 (integer) | 5-bit programmable |
+| **VCO Gain (K\_VCO)** | 200 – 800 MHz/V (typ.) | Depends on mode and process corner |
+| **Loop Bandwidth** | 1 – 5 MHz | Programmable via I\_CP selection |
+| **Phase Margin** | ≥ 55° | Ensures stable lock across PVT |
+| **Lock Time** | \< 10 µs | From cold start at 10 MHz reference |
+| **Total Power** | \< 8 mW @ TT, 1.8V, 27°C | Including VCO, CP, divider, buffer |
+| **Phase Noise (1 GHz out)** | \< −85 dBc/Hz @ 1 MHz offset | Ring oscillator limited; acceptable for digital clocking |
+| **Reference Spur Rejection** | \< −40 dBc | Third-order loop filter |
+| **Charge Pump Current (I\_CP)** | 10 – 80 µA (4 settings) | 3-bit programmable |
+| **Charge Pump Mismatch** | \< 2% (typ.) | Cascode current mirror matching |
+| **Operating Temperature** | −40°C to +125°C | Full industrial range |
+| **Supply Variation** | ±10% of nominal | 1.62V – 1.98V |
+| **Core Area (target)** | \< 0.15 mm² | Including loop filter passives |
+| **Output Swing** | CMOS rail-to-rail | Buffered single-ended output |
+
+
+## 6. Design Features and Innovations
+
+### 6.1 Configurable Ring Oscillator Topology
+
+Offering both 5-stage and 7-stage modes in a single instantiation, selectable at runtime, is a key differentiator. This allows the same silicon to serve two frequency sub-bands, maximizes testability (both modes can be characterized on every die), and provides insight into how stage count affects oscillation frequency, phase noise, and power.
+
+### 6.2 Charge Pump Current Programmability
+
+The 3-bit I\_CP switch bank allows in-system loop bandwidth adjustment without changing hardware, a practical feature for educational experimentation. Teams can observe, in real time, how changing I\_CP affects lock time, reference spur levels, and phase noise.
+
+### 6.3 Dead-Zone-Free PFD Implementation
+
+The reset-path delay buffer is independently tunable (via a switched capacitor load on the reset wire), and its effect on PFD linearity will be characterized through transient simulation and measured via phase noise at the output. This is an often-overlooked subtlety that will be explicitly taught and documented.
+
+### 6.4 Comprehensive Verification Strategy
+
+This is a cornerstone of the project philosophy. **No block will be taped out without passing a defined verification checklist.**
+
+#### Block-Level Verification
+
+| Block | Simulations | Pass Criteria |
+| - | - | - |
+| Ring VCO | Tuning curve (V\_ctrl sweep), K\_VCO extraction, startup transient, phase noise (using PSS/PNOISE or Spectre-equivalent) | Frequency range covers spec across all corners |
+| PFD | Functional (lead/lag detection), dead zone characterization, timing diagram vs. phase error | Zero dead zone at reset delay \> 200 ps |
+| Charge Pump | I\_CP vs. V\_out, UP/DOWN mismatch, charge injection | Mismatch \< 2% over V\_out swing |
+| Loop Filter | AC transfer function (Bode plot), noise contribution | Phase margin ≥ 55°, correct pole/zero placement |
+| Divider | Divide ratio 1–32, max toggle frequency | Correct division at all N, no glitches |
+| Lock Detector | Lock/unlock detection transient | Correct assertion within 2 reference cycles of lock |
+| Full PLL | Lock transient, output spectrum, phase noise, spur levels | All specs in Table 1 met |
+
+
+#### PVT Corner Analysis
+
+All blocks will be simulated across the full **27-corner matrix**:
+
+```
+Process:     FF, TT, SS  (3 corners)  
+Voltage:     1.62V, 1.80V, 1.98V  (3 levels, ±10%)  
+Temperature: −40°C, 27°C, 125°C  (3 points)  
+─────────────────────────────────────────────  
+Total:       3 × 3 × 3 = 27 corners
 ```
 
-Runtime on a modern laptop: **~2h 15m** for the full signoff run
-(Magic DRC + KLayout DRC + LVS + antenna + STA across 3 corners).
+Pass/fail status for each spec will be recorded in a **corner summary table** committed to the GitHub repository.
 
-Final artifacts land in `final/`:
-- `final/gds/chip_top.gds` (~85 MB)
-- `final/metrics.csv` (signoff metrics)
-- `final/*.log` (per-stage logs)
+#### Monte Carlo Simulations
 
-### Inspect a built GDS (Docker, hpretl/iic-osic-tools)
+Two Monte Carlo campaigns will be run using the GF180MCU mismatch and process variation models:
 
-`scripts/run_docker_iic.sh` spawns the iic-osic-tools container with
-this repo mounted; inside the container run `klayout final/gds/chip_top.gds`
-or `magic -T .../gf180mcuD.magicrc ...`.
+- **Mismatch Monte Carlo (N = 500 runs)**: Device-to-device Pelgrom mismatch within a die. Focuses on charge pump current mismatch, VCO stage delay variation, and PFD timing asymmetry.
 
-See `docs/reproducing-native.md` and `docs/reproducing-docker.md` for
-the detailed walkthroughs.
+- **Process Monte Carlo (N = 500 runs)**: Die-to-die global process parameter variation (V\_th, µ\_n, µ\_p, t\_ox). Evaluates yield of meeting frequency range, power, and lock-time specs.
 
-### Use the workshop slot for your own RTL
+Statistical results (mean, σ, min, max, yield at ±3σ) will be reported for all key specs.
 
-Swap `src/chip_core.sv` with your design, keeping the port list
-(NUM_INPUT=1, NUM_BIDIR=20, NUM_ANALOG=60, clk, rst_n), and re-run
-`SLOT=workshop make librelane`. Padring stays fixed.
+#### Phase Noise Analysis
 
-## Verification
+Phase noise will be estimated via:
 
-The repository was validated **end-to-end** against a known-good
-reference build. To re-run the pragmatic check (byte-compare the
-six tracked files against the reference tree):
+1. **Hand calculation** using Leeson's model extended to ring oscillators.
 
-```bash
-scripts/verify_workshop_slot.sh /path/to/reference/template
-```
+2. **ngspice transient noise simulation**: noise sources injected and FFT of output jitter.
 
-The reference build (DRC/LVS/antenna/STA signoff on 2026-04-23 with
-LibreLane 3.0 + wafer-space PDK 1.8.0) is the source of truth for
-"clean". As long as the fork's six files byte-match that reference,
-a fresh build on a compatible host will reproduce the same result.
+3. **Post-tapeout measurement** using an available spectrum analyzer or phase noise analyzer.
 
-If you do not have the reference tree, the repo itself is the ground
-truth - this fork *is* those six files.
+### 6.5 Open-Source Reproducibility
 
-## Repository layout
+Every simulation, schematic, layout file, and result will be version-controlled on GitHub with:
 
-```
-.
-|-- README.md                       # this file
-|-- NOTICE                          # Apache-2.0 attribution
-|-- CREDITS.md                      # detailed credits
-|-- AUTHORS.md                      # copyright holders (upstream + fork)
-|-- LICENSE                         # Apache-2.0
-|-- docs/
-|   |-- workshop-slot-spec.md       # full pad-by-pad mapping
-|   |-- reproducing-native.md       # nix-shell walkthrough
-|   `-- reproducing-docker.md       # iic-osic-tools walkthrough
-|-- examples/
-|   `-- rtl2gds_chipathon_padring.ipynb   # standalone notebook
-|-- scripts/
-|   |-- run_docker_iic.sh           # iic-osic-tools launcher
-|   `-- verify_workshop_slot.sh     # pragmatic end-to-end check
-|-- librelane/
-|   |-- config.yaml                 # top-level LibreLane config (patched)
-|   |-- pdn_cfg.tcl                 # PDN generator (patched)
-|   |-- chip_top.sdc                # upstream, unchanged
-|   `-- slots/
-|       |-- slot_0p5x0p5.yaml       # upstream, unchanged
-|       |-- slot_0p5x1.yaml         # upstream, unchanged
-|       |-- slot_1x0p5.yaml         # upstream, unchanged
-|       |-- slot_1x1.yaml           # upstream, unchanged
-|       `-- slot_workshop.yaml      # new (this fork)
-|-- src/
-|   |-- chip_top.sv                 # upstream, unchanged
-|   |-- chip_core.sv                # patched (counter->bidir)
-|   `-- slot_defines.svh            # patched (SLOT_WORKSHOP)
-|-- Makefile                        # patched (AVAILABLE_SLOTS += workshop)
-`-- (upstream infra: flake.nix, gf180mcu/, ip/, cocotb/, scripts/, ...)
-```
+- Automated regression scripts (shell/Python) to re-run all simulations from scratch.
 
-## License
+- Simulation result plots committed as PDF/PNG.
 
-Apache-2.0, inherited from upstream. See `LICENSE` for the full text,
-`NOTICE` for attribution of third-party material, and `AUTHORS.md`
-for the list of copyright holders.
+- Design documentation in Jupyter Notebooks for interactive learning.
+
+- A README.md with step-by-step instructions for running every simulation.
+
+## 7. Implementation Plan
+
+### 7.1 EDA Toolchain
+
+| Task | Tool | Notes |
+| - | - | - |
+| Schematic Capture | Xschem | Open-source, GF180MCU PDK integration |
+| SPICE Simulation | ngspice | Transient, AC, noise, Monte Carlo |
+| Layout | Magic VLSI | Full custom analog layout |
+| DRC | Magic + KLayout | Both tools run DRC against GF180MCU rules |
+| LVS | Netgen | Schematic vs. layout comparison |
+| Parasitic Extraction | Magic (RCX) | RC extraction for post-layout simulation |
+| Digital RTL | Icarus Verilog | Divider and lock detector functional sim |
+| Documentation | Jupyter Notebook, LaTeX/Markdown | Living design notebook |
+| Version Control | Git + GitHub | All files, results, and scripts |
+
+
+### 7.2 Project Phases and Timeline
+
+| Phase | Duration | Key Deliverables |
+| - | - | - |
+| **Phase 0**: Environment Setup & Learning | 2 weeks | PDK installed, tools working, inverter simulated |
+| **Phase 1**: Block Design & Simulation | 8 weeks | All blocks designed, schematic-level sim passing all corners |
+| **Phase 2**: Integration & PLL Simulation | 3 weeks | Full PLL lock transient, phase noise, spur analysis |
+| **Phase 3**: Layout | 6 weeks | Full custom layout, DRC/LVS clean |
+| **Phase 4**: Post-Layout Verification | 3 weeks | Parasitic-extracted sim, corner re-check |
+| **Phase 5**: Tapeout Preparation | 1 week | GDS export, final DRC/LVS, documentation freeze |
+| **Phase 6**: Documentation & Open-Source Release | Ongoing | GitHub, Jupyter Notebooks, final report |
+
+
+### 7.3 Team Structure
+
+| Role | Responsibilities |
+| - | - |
+| Sirajul| Phase detector implementation, divider/lock detector design, system-level PLL simulation, and lock analysis. |
+| Nandan| Ring oscillator design, tuning, phase noise characterization, and output buffer implementation. |
+| Kelvin| Charge pump design, dead zone characterization, and loop filter design. |
+
+Links
+[Github repo(s)](https://github.com/OlonadeKelvin/ro-pll-gf180)
+[Proposal Slide Link]()
