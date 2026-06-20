@@ -19,5 +19,4 @@ Just get a basic understanding of the modules, how to test it. Get a simulation 
 |1|All About Frequency Synthesis|https://www.youtube.com/watch?v=kOAUpw0W138&t=764s| The best video I watched to get a proper idea about PLLs|
 |2|PLL - Phase and Frequency Detector |https://www.youtube.com/watch?v=2i467dKhOBE|Talks about Phase Detector Architectures and shows timing diagrams.|
 |3|Phase Locked Loops_Prof. Saurabh Saxena|https://www.youtube.com/watch?v=T9pLoa-7TTM&list=PLyqSpQzTE6M8Axqvu8_1UdSWXmaJutr2k|A full course about PLLs. Could be useful to explain the behavior of the circuit from simulations and get an understanding of the design.|
-|4| PLL Phase Locked Loop on LTSpice
-|https://www.youtube.com/watch?v=Zg4cCoXDg_w&t=108s|Will be helpful to simulate just the phase Detector part.|
+|4|PLL Phase Locked Loop on LTSpice|https://www.youtube.com/watch?v=Zg4cCoXDg_w&t=108s|Will be helpful to simulate just the phase Detector part.|
