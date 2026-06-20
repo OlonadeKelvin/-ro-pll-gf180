@@ -4,6 +4,7 @@
 Just get a basic understanding of the modules, how to test it. Get a simulation first on schematic. Once we get a schematic, we know how to test it further by reading the relevant sections only. We don't need to spend too much time understanding everything except maybe 1 or 2 Fundamental papers. Once that's done, we can supplement with the rest. 
 
 ### Documents 
+These can be found in the PapersAndDocs folder.
 |Doc Num| Document Name | Description | 
 | :--- | :--- | :--- |
 |1|An Overview of PLL from Fundamentals|Introduces core PLL building blocks, operational basics, and the architectural shift from analog to modern all-digital systems.|
