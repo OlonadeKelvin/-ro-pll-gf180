@@ -26,3 +26,4 @@ These can be found in the PapersAndDocs folder.
 |Num|Name|Link|Purpose|
 | :--- | :--- | :--- | :--- |
 |1|SPICE Source Types and Parameters|https://www.ni.com/en/shop/electronic-test-instrumentation/application-software-for-electronic-test-and-instrumentation-category/what-is-multisim/spice-simulation-fundamentals/spice-source-types-and-parameters.html?srsltid=AfmBOor4bAuTjmxb0Mi8cGHEZhNYYx3os8rsMSlk6CBRqoCHL5oIZHHB|Parameter lists for the sources for writing spice stimuli|
+|2|NGSpice official Website|https://ngspice.sourceforge.io/ngspice-tutorial.html| Has beginner friendly tutorials to follow for different kinds of simulations|
