@@ -21,3 +21,8 @@ These can be found in the PapersAndDocs folder.
 |2|PLL - Phase and Frequency Detector |https://www.youtube.com/watch?v=2i467dKhOBE|Talks about Phase Detector Architectures and shows timing diagrams.|
 |3|Phase Locked Loops_Prof. Saurabh Saxena|https://www.youtube.com/watch?v=T9pLoa-7TTM&list=PLyqSpQzTE6M8Axqvu8_1UdSWXmaJutr2k|A full course about PLLs. Could be useful to explain the behavior of the circuit from simulations and get an understanding of the design.|
 |4|PLL Phase Locked Loop on LTSpice | https://www.youtube.com/watch?v=Zg4cCoXDg_w&t=108s |Will be helpful to simulate just the phase Detector part.|
+
+### Websites 
+|Num|Name|Link|Purpose|
+| :--- | :--- | :--- | :--- |
+|1|SPICE Source Types and Parameters|https://www.ni.com/en/shop/electronic-test-instrumentation/application-software-for-electronic-test-and-instrumentation-category/what-is-multisim/spice-simulation-fundamentals/spice-source-types-and-parameters.html?srsltid=AfmBOor4bAuTjmxb0Mi8cGHEZhNYYx3os8rsMSlk6CBRqoCHL5oIZHHB|Parameter lists for the sources for writing spice stimuli|
